@@ -68,13 +68,27 @@ int wav_write(struct dev_param *param, char num)
 	struct wav wav;
 	FILE *fp;
 	char file[FILE_NAME_SIZE];
+	int i, len;
 	int ret = -ENOENT;
+
+	//==========================
+	// create file name
+	//
+	// ex) num = 0
+	//	xxxx/00.wav
+	//==========================
+	if (strlen(param->path) + param->chan + 10 > FILE_NAME_SIZE)
+		goto no_open;
+
+	sprintf(file, "%s/", param->path);
+	len = strlen(file);
+	for (i = len; i < len + param->chan; i++)
+		file[i] = num;
+	sprintf(file + i, ".wav");
 
 	//==========================
 	// open the file
 	//==========================
-	sprintf(file, "%s/%c.wav", param->path, num);
-
 	if (!(fp = fopen(file, "w")))
 		goto no_open;
 
