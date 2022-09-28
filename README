@@ -1,0 +1,67 @@
+============== -*- outline -*- ==============
+
+                 simple DTMF
+
+2022/09/28	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+=============================================
+
+* What is this ?
+
+	simple DTMF will
+		1) create  DTMF tone wav file
+		2) analyze DTMF tone wav file
+
+	This simple DTMF have been created to create sound auto test script.
+
+* Compile
+
+	run make
+
+* create DTMF tone wav file
+
+	simple DTMF will create DTMF tone wav file (0.wav - 9.wav) to indicated dir.
+	It doesn't mind "ABCD*#".
+
+		simple_dtmf [orcv]
+
+		-o : output dir
+		-r : rate
+		-c : chan
+		-v : verbose print
+
+	Each channels will have same DTMF tone.
+
+	> mkdir 48000_2ch
+	> simple_dtmf -r 48000 -c 2ch -o 48000_2ch
+	> file 48000_2ch/*
+	48000_2ch/0.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
+	48000_2ch/1.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
+	48000_2ch/2.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
+	48000_2ch/3.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
+	48000_2ch/4.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
+	48000_2ch/5.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
+	48000_2ch/6.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
+	48000_2ch/7.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
+	48000_2ch/8.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
+	48000_2ch/9.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
+
+* analyze DTMF tone wav file
+
+	simple DTMF will analyze input wav file.
+	It doesn't mind "ABCD*#".
+
+		simple_dtmf [i]
+
+		-i : input file
+		-v : verbose print
+
+	It will indicate each channels DTMF analyze result.
+
+	> simple_dtmf -i 48000_2ch/9.wav
+	99
+
+* Reference
+
+	https://github.com/soramimi/QtDTMF
+	https://qiita.com/soramimi_jp/items/4e196dd4f741afb9bb50
+	https://www.youfit.co.jp/archives/1418

@@ -1,0 +1,16 @@
+###########################################
+# You can get tiny-make from
+#	https://github.com/morimoto/tiny-make.git
+#	https://gitlab.com/morimoto.kuninori/tiny-make.git
+###########################################
+-include ./Makefile
+-include ${TOP}/script/Makefile.common
+
+##################################
+#
+# command
+#
+##################################
+all:
+	${MYMAKE} -f ${TOP}/script/Makefile.depend clean;
+	${MYMAKE} -f ${TOP}/script/Makefile.build  clean;
