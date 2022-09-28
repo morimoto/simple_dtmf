@@ -37,7 +37,8 @@ struct dev_param {
 	int verbose:1;
 
 	s16 *buf;
-	char *path;
+	char *dirname;
+	char *filename;
 };
 
 #define printv(param, fmt...) if (param->verbose) printf(fmt)

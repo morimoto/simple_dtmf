@@ -33,7 +33,8 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 	param->chan	= 2;		// 2ch
 	param->rate	= 8000;
 	param->sample	= sizeof(s16);	// update me
-	param->path	= NULL;
+	param->dirname	= NULL;
+	param->filename	= NULL;
 
 	//==========================
 	// parse
@@ -42,11 +43,11 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 		switch (opt) {
 		case 'o':
 			param->is_out	= 1;
-			param->path	= optarg;
+			param->dirname	= optarg;
 			break;
 		case 'i':
 			param->is_out	= 0;
-			param->path	= optarg;
+			param->filename	= optarg;
 			break;
 		case 'r':
 			sscanf(optarg, "%d", &param->rate);
@@ -67,7 +68,8 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 	//==========================
 	// check params
 	//==========================
-	if (!param->path)
+	if (( param->is_out && !param->dirname) ||
+	    (!param->is_out && !param->filename))
 		goto err;
 	if (param->chan % 2)
 		goto err;

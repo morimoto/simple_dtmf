@@ -77,10 +77,10 @@ int wav_write(struct dev_param *param, char num)
 	// ex) num = 0
 	//	xxxx/00.wav
 	//==========================
-	if (strlen(param->path) + param->chan + 10 > FILE_NAME_SIZE)
+	if (strlen(param->dirname) + param->chan + 10 > FILE_NAME_SIZE)
 		goto no_open;
 
-	sprintf(file, "%s/", param->path);
+	sprintf(file, "%s/", param->dirname);
 	len = strlen(file);
 	for (i = len; i < len + param->chan; i++)
 		file[i] = num;
@@ -144,7 +144,7 @@ int wav_read_header(struct dev_param *param)
 	//==========================
 	// file open
 	//==========================
-	if (!(fp = fopen(param->path, "r")))
+	if (!(fp = fopen(param->filename, "r")))
 		goto no_open;
 
 	//==========================
@@ -224,7 +224,7 @@ int wav_read_data(struct dev_param *param, int chan)
 	//==========================
 	// file open
 	//==========================
-	if (!(fp = fopen(param->path, "r")))
+	if (!(fp = fopen(param->filename, "r")))
 		goto no_open;
 
 	//==========================
