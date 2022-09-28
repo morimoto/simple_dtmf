@@ -203,7 +203,7 @@ int wav_read_data(struct dev_param *param, int chan)
 {
 	FILE *fp;
 	int ret = -ENOMEM;
-	int offset = (param->chan - 1) * param->sample;
+	int offset;
 
 	//==========================
 	// file open
