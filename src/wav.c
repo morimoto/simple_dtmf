@@ -51,6 +51,8 @@ static int name_check(char *pos, const char *ans)
 
 static void name_fill(char *pos, const char *ans)
 {
+	// It shouldn't use strcpy()
+	// becasue pos don't need last "\n"
 	for (int i = 0; i < strlen(ans); i++)
 		pos[i] = ans[i];
 }
