@@ -129,9 +129,67 @@ static void buf_free(struct dev_param *param)
 // dtmf_wav_write
 //
 //=======================================
+#define FILE_NAME_SIZE 128
+static int __dtmf_wav_write(struct dev_param *param, char *nums)
+{
+	char filename[FILE_NAME_SIZE];
+	char num;
+	int dir_len = strlen(param->dirname) + 1;
+	int ret = -EINVAL;
+
+	//==========================
+	// create and set filename
+	// it is used at wav.c
+	//==========================
+	if (dir_len + strlen(nums) + 10 > FILE_NAME_SIZE)
+		goto err;
+
+	sprintf(filename, "%s/%s.wav", param->dirname, nums);
+
+	param->filename = filename;
+
+	//==========================
+	// write header
+	//==========================
+	ret = wav_write_header(param);
+	if (ret < 0)
+		goto err;
+
+	//==========================
+	// write data for each channels
+	//
+	// num came from filename
+	//
+	// filename : /dirname/023.wav
+	//                     ^^^
+	//==========================
+	for (int chan = 0; chan < param->chan; chan++) {
+		num = param->filename[dir_len + chan];
+
+		ret = dtmf_fill(param, num);
+		if (ret < 0)
+			goto err;
+
+		ret = wav_write_data(param, chan);
+		if (ret < 0)
+			goto err;
+	}
+
+	// success
+	ret = 0;
+err:
+	return ret;
+}
+
+#define NUMS_SIZE 32
 static int dtmf_wav_write(struct dev_param *param)
 {
-	int ret;
+	char nums[NUMS_SIZE];
+	int ret = -EINVAL;
+	int i;
+
+	if (param->chan + 1 > NUMS_SIZE)
+		goto err;
 
 	//==========================
 	// alloc buf for 1sec
@@ -150,12 +208,17 @@ static int dtmf_wav_write(struct dev_param *param)
 	//==========================
 	// write 0.wav - 9.wav
 	//==========================
-	for (char num = '0'; num <= '9'; num++) {
-		ret = dtmf_fill(param, num);
-		if (ret < 0)
-			goto free;
+	for (int num = 0; num <= 9; num++) {
+		//==========================
+		// create nums
+		// ex) 2ch
+		// "00", "11", "22", ...
+		//==========================
+		for (i = 0; i < param->chan; i++)
+			nums[i] = '0' + num;
+		nums[i] = 0;
 
-		ret = wav_write(param, num);
+		ret = __dtmf_wav_write(param, nums);
 		if (ret < 0)
 			goto free;
 	}

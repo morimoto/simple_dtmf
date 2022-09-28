@@ -51,7 +51,9 @@ struct dev_param {
 char dtmf_analyze(struct dev_param *param);
 int  dtmf_fill(struct dev_param *param, char num);
 
-int wav_write(struct dev_param *param, char num);
+int wav_write_header(struct dev_param *param);
+int wav_write_data(struct dev_param *param, int chan);
+
 int wav_read_header(struct dev_param *param);
 int wav_read_data(struct dev_param *param, int chan);
 

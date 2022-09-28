@@ -63,33 +63,17 @@ static void name_fill(char *pos, const char *ans)
 //
 //=======================================
 #define FILE_NAME_SIZE 128
-int wav_write(struct dev_param *param, char num)
+int wav_write_header(struct dev_param *param)
 {
 	struct wav wav;
 	FILE *fp;
-	char file[FILE_NAME_SIZE];
-	int i, len;
+	int null = 0;
 	int ret = -ENOENT;
-
-	//==========================
-	// create file name
-	//
-	// ex) num = 0
-	//	xxxx/00.wav
-	//==========================
-	if (strlen(param->dirname) + param->chan + 10 > FILE_NAME_SIZE)
-		goto no_open;
-
-	sprintf(file, "%s/", param->dirname);
-	len = strlen(file);
-	for (i = len; i < len + param->chan; i++)
-		file[i] = num;
-	sprintf(file + i, ".wav");
 
 	//==========================
 	// open the file
 	//==========================
-	if (!(fp = fopen(file, "w")))
+	if (!(fp = fopen(param->filename, "w")))
 		goto no_open;
 
 	//==========================
@@ -110,14 +94,60 @@ int wav_write(struct dev_param *param, char num)
 	wav.rsize		= wav.SubChunckSize + 44;
 
 	//==========================
-	// write wav data
+	// write header
 	//==========================
 	ret = -EINVAL;
 	if (!fwrite(&wav, sizeof(wav), 1, fp))
 		goto err;
-	for (int i = 0; i < param->length; i++)
-		if (!fwrite(&param->buf[i], param->sample, param->chan, fp))
+
+	//==========================
+	// fill null data
+	//==========================
+	for (int i = 0; i < wav.SubChunckSize; i++)
+		if (!fwrite(&null, 1, 1, fp))
 			goto err;
+
+	// success
+	ret = 0;
+err:
+	fclose(fp);
+no_open:
+	return ret;
+}
+
+int wav_write_data(struct dev_param *param, int chan)
+{
+	FILE *fp;
+	int ret = -ENOENT;
+	int offset;
+
+	//==========================
+	// open the file
+	//==========================
+	if (!(fp = fopen(param->filename, "r+")))
+		goto no_open;
+
+	//==========================
+	// skip "header part" and
+	// 1st "non target channel" (offset)
+	//==========================
+	offset = chan * param->sample;
+	if (fseek(fp, sizeof(struct wav) + offset, SEEK_SET))
+		goto err;
+
+	//==========================
+	// write data
+	//==========================
+	ret = -EIO;
+	offset = (param->chan - 1) * param->sample;
+
+	for (int i = 0; i < param->length; i++) {
+		if (!fwrite(&param->buf[i], param->sample, 1, fp))
+			goto err;
+
+		if (offset > 0 && fseek(fp, offset, SEEK_CUR))
+			goto err;
+	}
 
 	// success
 	ret = 0;
