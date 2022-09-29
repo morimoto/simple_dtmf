@@ -78,7 +78,7 @@ int wav_write_header(struct dev_param *param)
 	wav.nBlockAlign		= param->sample * param->chan;
 	wav.nAvgBytesPerSec	= wav.nBlockAlign * param->rate;
 	wav.SubChunckSize	= wav.nBlockAlign * param->length;
-	wav.rsize		= wav.SubChunckSize + 44;
+	wav.rsize		= wav.SubChunckSize + 44 - 8;
 
 	//==========================
 	// write header
@@ -198,7 +198,7 @@ int wav_read_header(struct dev_param *param)
 	// expectation part check
 	//==========================
 	ret = -EINVAL;
-	if (wav.rsize != wav.SubChunckSize + 44)
+	if (wav.rsize != wav.SubChunckSize + 44 - 8)
 		goto err;
 	if (wav.cksize != 16)
 		goto err;
