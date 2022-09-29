@@ -31,7 +31,6 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 	int opt;
 
 	// default settings
-	param->is_out	= 1;		// out
 	param->chan	= 2;		// 2ch
 	param->rate	= 8000;
 	param->sample	= sizeof(s16);	// update me
@@ -44,11 +43,11 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 	while ((opt = getopt(argc, argv, "o:i:r:c:vh")) != -1) {
 		switch (opt) {
 		case 'o':
-			param->is_out	= 1;
+			param->flag	|= FLAG_TYPE_OUT;
 			param->nums	= optarg;
 			break;
 		case 'i':
-			param->is_out	= 0;
+			param->flag	|= FLAG_TYPE_IN;
 			param->filename	= optarg;
 			break;
 		case 'r':
@@ -58,7 +57,7 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 			sscanf(optarg, "%d", &param->chan);
 			break;
 		case 'v':
-			param->verbose = 1;
+			param->flag |= FLAG_VERBOSE;
 			break;
 		case 'h':
 			usage();
@@ -73,21 +72,24 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 	//==========================
 	// check params
 	//==========================
-	if (!param->is_out && !param->filename)
-		goto err;
-	if (param->chan % 2)
-		goto err;
+	switch (param->flag & FLAG_TYPE_MASK) {
+		int len;
+	case FLAG_TYPE_OUT:
+		len = strlen(param->nums);
 
-	if (param->is_out) {
-		int len = strlen(param->nums);
-		if (!param->nums)
-			goto err;
 		if (len < param->chan)
 			goto err;
 		for (int i = 0; i < len; i++)
 			if (param->nums[i] < '0' || param->nums[i] > '9')
 				goto err;
+		break;
+	case FLAG_TYPE_IN:
+		break;
+	default:
+		goto err;
 	}
+	if (param->chan % 2)
+		goto err;
 
 	switch (param->rate) {
 	case   8000:
@@ -305,10 +307,18 @@ int main(int argc, char **argv)
 	//==========================
 	// write or analyze DTMF
 	//==========================
-	if (param.is_out)
+	switch (param.flag & FLAG_TYPE_MASK) {
+	case FLAG_TYPE_OUT:
 		ret = dtmf_wav_write(&param);
-	else
+		break;
+	case FLAG_TYPE_IN:
 		ret = dtmf_wav_analyze(&param);
+		break;
+	default:
+		ret = -EINVAL;
+		break;
+	}
+
 err:
 	if (ret < 0)
 		printf("%s\n", strerror(ret * -1));

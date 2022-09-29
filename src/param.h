@@ -19,6 +19,12 @@
 #define u16	unsigned short
 #define u32	unsigned int
 
+#define FLAG_TYPE_MASK	(0xF << 0)
+#define FLAG_TYPE_OUT	(0x1 << 0)
+#define FLAG_TYPE_IN	(0x2 << 0)
+
+#define FLAG_VERBOSE	(1 << 31)
+
 struct dev_param {
 	/*
 	 * <---- chan ---->
@@ -33,15 +39,14 @@ struct dev_param {
 	int sample;	/* 16 bit for now */
 	int length;
 
-	int is_out:1;
-	int verbose:1;
+	u32 flag;
 
 	s16 *buf;
 	char *nums;
 	char *filename;
 };
 
-#define printv(param, fmt...) if (param->verbose) printf(fmt)
+#define printv(param, fmt...) if (param->flag & FLAG_VERBOSE) printf(fmt)
 #ifdef _DEBUG
 #define printd(fmt...)	printf(" * " fmt)
 #else
