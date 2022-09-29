@@ -15,7 +15,8 @@
 
 * Compile
 
-	run make
+	> cp src/sample.config .config
+	> make
 
 * create DTMF tone wav file
 

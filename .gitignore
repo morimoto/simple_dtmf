@@ -1,3 +1,4 @@
 *.o
 *.mk
 simple_dtmf
+.config
