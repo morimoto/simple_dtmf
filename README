@@ -18,6 +18,11 @@
 	> cp src/sample.config .config
 	> make
 
+* Cross Compile
+
+	Add CROSS_COMPILE on .config.
+	Enables EXTR (= -static) on it if you want to statically linked binary.
+
 * create DTMF tone wav file
 
 	simple DTMF will create DTMF tone wav file (0.wav - 9.wav) to indicated dir.
