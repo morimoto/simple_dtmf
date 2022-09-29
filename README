@@ -24,26 +24,21 @@
 
 		simple_dtmf [orcv]
 
-		-o : output dir
+		-o : create nums
 		-r : rate
 		-c : chan
 		-v : verbose print
 
-	Each channels will have same DTMF tone.
+	Each channels will have DTMF tone.
 
-	> mkdir 48000_2ch
-	> simple_dtmf -r 48000 -c 2ch -o 48000_2ch
-	> file 48000_2ch/*
-	48000_2ch/0.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
-	48000_2ch/1.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
-	48000_2ch/2.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
-	48000_2ch/3.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
-	48000_2ch/4.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
-	48000_2ch/5.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
-	48000_2ch/6.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
-	48000_2ch/7.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
-	48000_2ch/8.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
-	48000_2ch/9.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 48000 Hz
+	ex)
+		> simple_dtmf -c 2 -o 98765
+		98.wav
+		76.wav
+
+	98.wav has "tone 9" on 1ch, "tone 8" on 2ch
+	76.wav has "tone 7" on 1ch, "tone 6" on 2ch
+	"5" will be ignored because of -c 2
 
 * analyze DTMF tone wav file
 

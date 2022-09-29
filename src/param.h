@@ -37,7 +37,7 @@ struct dev_param {
 	int verbose:1;
 
 	s16 *buf;
-	char *dirname;
+	char *nums;
 	char *filename;
 };
 

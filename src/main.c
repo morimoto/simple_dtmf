@@ -15,11 +15,13 @@
 static void usage(void)
 {
 	printf("\n\n"
-		"simple_dtmf [oircv]\n\n"
-		"	-o : output dir\n"
-		"	-i : input file\n"
+		"simple_dtmf [orcv]\n\n"
+		"	-o : create nums (0 - 9)\n"
 		"	-r : rate\n"
 		"	-c : chan\n"
+		"	-v : verbose print\n\n"
+		"simple_dtmf [iv]\n\n"
+		"	-i : input file\n"
 		"	-v : verbose print\n\n"
 		);
 }
@@ -33,7 +35,7 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 	param->chan	= 2;		// 2ch
 	param->rate	= 8000;
 	param->sample	= sizeof(s16);	// update me
-	param->dirname	= NULL;
+	param->nums	= NULL;
 	param->filename	= NULL;
 
 	//==========================
@@ -43,7 +45,7 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 		switch (opt) {
 		case 'o':
 			param->is_out	= 1;
-			param->dirname	= optarg;
+			param->nums	= optarg;
 			break;
 		case 'i':
 			param->is_out	= 0;
@@ -68,11 +70,22 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 	//==========================
 	// check params
 	//==========================
-	if (( param->is_out && !param->dirname) ||
-	    (!param->is_out && !param->filename))
+	if (!param->is_out && !param->filename)
 		goto err;
 	if (param->chan % 2)
 		goto err;
+
+	if (param->is_out) {
+		int len = strlen(param->nums);
+		if (!param->nums)
+			goto err;
+		if (len < param->chan)
+			goto err;
+		for (int i = 0; i < len; i++)
+			if (param->nums[i] < '0' || param->nums[i] > '9')
+				goto err;
+	}
+
 	switch (param->rate) {
 	case   8000:
 	case  11025:
@@ -129,23 +142,12 @@ static void buf_free(struct dev_param *param)
 // dtmf_wav_write
 //
 //=======================================
-#define FILE_NAME_SIZE 128
-static int __dtmf_wav_write(struct dev_param *param, char *nums)
+static int __dtmf_wav_write(struct dev_param *param, char *filename)
 {
-	char filename[FILE_NAME_SIZE];
 	char num;
-	int dir_len = strlen(param->dirname) + 1;
 	int ret = -EINVAL;
 
-	//==========================
-	// create and set filename
-	// it is used at wav.c
-	//==========================
-	if (dir_len + strlen(nums) + 10 > FILE_NAME_SIZE)
-		goto err;
-
-	sprintf(filename, "%s/%s.wav", param->dirname, nums);
-
+	// filename is used at wav.c
 	param->filename = filename;
 
 	//==========================
@@ -160,11 +162,11 @@ static int __dtmf_wav_write(struct dev_param *param, char *nums)
 	//
 	// num came from filename
 	//
-	// filename : /dirname/023.wav
-	//                     ^^^
+	// filename : 023.wav
+	//            ^^^
 	//==========================
 	for (int chan = 0; chan < param->chan; chan++) {
-		num = param->filename[dir_len + chan];
+		num = param->filename[chan];
 
 		ret = dtmf_fill(param, num);
 		if (ret < 0)
@@ -181,14 +183,14 @@ err:
 	return ret;
 }
 
-#define NUMS_SIZE 32
+#define FILE_NAME_SIZE 128
 static int dtmf_wav_write(struct dev_param *param)
 {
-	char nums[NUMS_SIZE];
+	char filename[FILE_NAME_SIZE];
 	int ret = -EINVAL;
-	int i;
+	int i, len;
 
-	if (param->chan + 1 > NUMS_SIZE)
+	if (param->chan + 10 > FILE_NAME_SIZE)
 		goto err;
 
 	//==========================
@@ -206,19 +208,20 @@ static int dtmf_wav_write(struct dev_param *param)
 	printv(param, "length  : %d\n", param->length);
 
 	//==========================
-	// write 0.wav - 9.wav
+	// create nums
+	//
+	// ex) simple_dtmf -c 2 -o 1234567
+	// "12.wav", "34.wav", "56.wav"
 	//==========================
-	for (int num = 0; num <= 9; num++) {
-		//==========================
-		// create nums
-		// ex) 2ch
-		// "00", "11", "22", ...
-		//==========================
-		for (i = 0; i < param->chan; i++)
-			nums[i] = '0' + num;
-		nums[i] = 0;
+	len = (strlen(param->nums) / param->chan) * param->chan;
 
-		ret = __dtmf_wav_write(param, nums);
+	for (i = 0; i < len; i += param->chan) {
+		memcpy(filename, param->nums + i, param->chan);
+		sprintf(filename + param->chan, ".wav");
+
+		printf("%s\n", filename);
+
+		ret = __dtmf_wav_write(param, filename);
 		if (ret < 0)
 			goto free;
 	}
