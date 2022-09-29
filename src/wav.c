@@ -13,11 +13,12 @@
 //
 //
 //=================================================
+#define ID_SIZE 4
 struct wav {
-	char riff[4];			// 4: "RIFF"
+	char riff[ID_SIZE];		// 4: "RIFF"
 	u32  rsize;			// 4: file size - 8
-	char ID[4];			// 4: "WAVE"
-	char ckID[4];			// 4: "fmt "
+	char ID[ID_SIZE];		// 4: "WAVE"
+	char ckID[ID_SIZE];		// 4: "fmt "
 	u32  cksize;			// 4: 16
 	u16  wFormatTag;		// 2: Format code
 	u16  nChannels;			// 2: Channels
@@ -25,7 +26,7 @@ struct wav {
 	u32  nAvgBytesPerSec;		// 4: Data rate
 	u16  nBlockAlign;		// 2: Data block size (bytes)
 	u16  wBitsPerSample;		// 2: Bits per sample
-	char SubChunck[4];		// 4: "data"
+	char SubChunck[ID_SIZE];	// 4: "data"
 	u32  SubChunckSize;		// 4: file size - 44
 };
 
@@ -40,22 +41,8 @@ const static char *data	= "data";
 // name_fill
 //
 //=======================================
-static int name_check(char *pos, const char *ans)
-{
-	for (int i = 0; i < strlen(ans); i++)
-		if (pos[i] != ans[i])
-			return -EINVAL;
-
-	return 0;
-}
-
-static void name_fill(char *pos, const char *ans)
-{
-	// It shouldn't use strcpy()
-	// becasue pos don't need last "\n"
-	for (int i = 0; i < strlen(ans); i++)
-		pos[i] = ans[i];
-}
+#define name_check(pos, ans) strncmp(pos, ans, ID_SIZE);
+#define name_fill(pos, ans)   memcpy(pos, ans, ID_SIZE)
 
 //=======================================
 //
@@ -192,19 +179,19 @@ int wav_read_header(struct dev_param *param)
 	// name part check
 	//==========================
 	ret = name_check(wav.riff, riff);
-	if (ret < 0)
+	if (ret)
 		goto err;
 
 	ret = name_check(wav.ID, wave);
-	if (ret < 0)
+	if (ret)
 		goto err;
 
 	ret = name_check(wav.ckID, fmt);
-	if (ret < 0)
+	if (ret)
 		goto err;
 
 	ret = name_check(wav.SubChunck, data);
-	if (ret < 0)
+	if (ret)
 		goto err;
 
 	//==========================
