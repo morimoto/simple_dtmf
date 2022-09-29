@@ -75,3 +75,7 @@
 	chan:2
 	rate:48000
 	bit :16
+
+* Sample Test
+
+	You can find sample test at ./script/sample-test-xxx.sh
