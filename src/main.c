@@ -23,6 +23,8 @@ static void usage(void)
 		"simple_dtmf [iv]\n\n"
 		"	-i : input file\n"
 		"	-v : verbose print\n\n"
+		"simple_dtmf [l]\n\n"
+		"	-l : input file info\n"
 		);
 }
 
@@ -40,7 +42,7 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 	//==========================
 	// parse
 	//==========================
-	while ((opt = getopt(argc, argv, "o:i:r:c:vh")) != -1) {
+	while ((opt = getopt(argc, argv, "o:i:l:r:c:vh")) != -1) {
 		switch (opt) {
 		case 'o':
 			param->flag	|= FLAG_TYPE_OUT;
@@ -48,6 +50,10 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 			break;
 		case 'i':
 			param->flag	|= FLAG_TYPE_IN;
+			param->filename	= optarg;
+			break;
+		case 'l':
+			param->flag	|= FLAG_TYPE_INFO;
 			param->filename	= optarg;
 			break;
 		case 'r':
@@ -84,6 +90,7 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 				goto err;
 		break;
 	case FLAG_TYPE_IN:
+	case FLAG_TYPE_INFO:
 		break;
 	default:
 		goto err;
@@ -287,6 +294,30 @@ err:
 
 //=======================================
 //
+// dtmf_wav_info
+//
+//=======================================
+static int dtmf_wav_info(struct dev_param *param)
+{
+	int ret;
+
+	//==========================
+	// read wav header, and fill params
+	//==========================
+	ret = wav_read_header(param);
+	if (ret < 0)
+		goto err;
+
+	printf("chan:%d\n", param->chan);
+	printf("rate:%d\n", param->rate);
+	printf("bit :%d\n", param->sample * 8);
+
+err:
+	return ret;
+}
+
+//=======================================
+//
 // main
 //
 //=======================================
@@ -313,6 +344,9 @@ int main(int argc, char **argv)
 		break;
 	case FLAG_TYPE_IN:
 		ret = dtmf_wav_analyze(&param);
+		break;
+	case FLAG_TYPE_INFO:
+		ret = dtmf_wav_info(&param);
 		break;
 	default:
 		ret = -EINVAL;

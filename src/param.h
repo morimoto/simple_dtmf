@@ -22,6 +22,7 @@
 #define FLAG_TYPE_MASK	(0xF << 0)
 #define FLAG_TYPE_OUT	(0x1 << 0)
 #define FLAG_TYPE_IN	(0x2 << 0)
+#define FLAG_TYPE_INFO	(0x3 << 0)
 
 #define FLAG_VERBOSE	(1 << 31)
 

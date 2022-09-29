@@ -61,6 +61,15 @@
 	> simple_dtmf -i 48000_2ch/9.wav
 	99
 
+* wav info
+
+	simple DTMF will indicate wav file info.
+
+	> simple_dtmf -l 48k_2ch_16bit.wav
+	chan:2
+	rate:48000
+	bit :16
+
 * Reference
 
 	https://github.com/soramimi/QtDTMF
