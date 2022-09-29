@@ -41,7 +41,7 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 	//==========================
 	// parse
 	//==========================
-	while ((opt = getopt(argc, argv, "o:i:r:c:v")) != -1) {
+	while ((opt = getopt(argc, argv, "o:i:r:c:vh")) != -1) {
 		switch (opt) {
 		case 'o':
 			param->is_out	= 1;
@@ -60,6 +60,9 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 		case 'v':
 			param->verbose = 1;
 			break;
+		case 'h':
+			usage();
+			exit(0);
 		default:
 			goto err;
 		}
