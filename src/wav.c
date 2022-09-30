@@ -78,7 +78,7 @@ int wav_write_header(struct dev_param *param)
 	wav.nBlockAlign		= param->sample * param->chan;
 	wav.nAvgBytesPerSec	= wav.nBlockAlign * param->rate;
 	wav.SubChunckSize	= wav.nBlockAlign * param->length;
-	wav.rsize		= wav.SubChunckSize + 44 - 8;
+	wav.rsize		= wav.SubChunckSize + sizeof(struct wav) - 8;
 
 	//==========================
 	// write header
