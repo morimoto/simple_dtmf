@@ -198,8 +198,6 @@ int wav_read_header(struct dev_param *param)
 	// expectation part check
 	//==========================
 	ret = -EINVAL;
-	if (wav.rsize != wav.SubChunckSize + 44 - 8)
-		goto err;
 	if (wav.cksize != 16)
 		goto err;
 	if (wav.wFormatTag != 0x0001) /* WAVE_FORMAT_PCM */
