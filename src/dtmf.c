@@ -41,7 +41,7 @@ const static struct tone_info tone_info[] = {
 	{ '8', TONE_789C, TONE_2580 },
 	{ '9', TONE_789C, TONE_369x },
 };
-const static char unknown = 'x';
+const static char unknown = '?';
 
 #define PI2		(M_PI * 2)
 
