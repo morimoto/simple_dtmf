@@ -96,7 +96,7 @@ static void __dtmf_analyze(struct dev_param *param, const int *fq, int *ret)
 			idx = i;
 	}
 
-	if (idx < 0)
+	if (level[idx] < 0.5) // FIXME
 		return;
 
 	//==========================
