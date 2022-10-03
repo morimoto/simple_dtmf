@@ -30,7 +30,7 @@
 
 		simple_dtmf [orcv]
 
-		-o : create nums
+		-o : create nums (0123456789 or -)
 		-r : rate
 		-c : chan
 		-v : verbose print
@@ -45,6 +45,12 @@
 	98.wav has "tone 9" on 1ch, "tone 8" on 2ch
 	76.wav has "tone 7" on 1ch, "tone 6" on 2ch
 	"5" will be ignored because of -c 2
+
+	ex)
+		> simple_dtmf -c 2 -o 9-
+		9-.wav
+
+	9-.wav has "tone 9" on 2ch, "no data" on 2ch.
 
 * analyze DTMF tone wav file
 

@@ -16,7 +16,7 @@ static void usage(void)
 {
 	printf("\n\n"
 		"simple_dtmf [orcv]\n\n"
-		"	-o : create nums (0 - 9)\n"
+		"	-o : create nums (0123456789 or -)\n"
 		"	-r : rate\n"
 		"	-c : chan\n"
 		"	-v : verbose print\n\n"
@@ -86,7 +86,8 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 		if (len < param->chan)
 			goto err;
 		for (int i = 0; i < len; i++)
-			if (param->nums[i] < '0' || param->nums[i] > '9')
+			if ((param->nums[i] != '-') &&
+			    (param->nums[i] < '0' || param->nums[i] > '9'))
 				goto err;
 		break;
 	case FLAG_TYPE_IN:

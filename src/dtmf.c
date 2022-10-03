@@ -155,6 +155,13 @@ int dtmf_fill(struct dev_param *param, char num)
 	int tone_hi  = 0;
 	int i, v = 0;
 
+	if (num == '-') {
+		/* do nothing */
+		memset(param->buf, 0, param->length * param->sample);
+		return 0;
+	}
+
+
 	for (i = 0; i < ARRAY_SIZE(tone_info); i++) {
 		if (tone_info[i].num == num) {
 			tone_hi  = tone_info[i].hi;
