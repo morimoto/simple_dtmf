@@ -155,7 +155,7 @@ int dtmf_fill(struct dev_param *param, char num)
 	int tone_hi  = 0;
 	int i, v = 0;
 
-	if (num == '-') {
+	if (num == '_') {
 		/* do nothing */
 		memset(param->buf, 0, param->length * param->sample);
 		return 0;
