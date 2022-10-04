@@ -75,9 +75,3 @@
 	chan:2
 	rate:48000
 	bit :16
-
-* Reference
-
-	https://github.com/soramimi/QtDTMF
-	https://qiita.com/soramimi_jp/items/4e196dd4f741afb9bb50
-	https://www.youfit.co.jp/archives/1418
