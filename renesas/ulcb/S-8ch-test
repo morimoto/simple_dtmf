@@ -1,0 +1,40 @@
+#! /bin/sh
+TOP=`readlink -f "$0" | xargs dirname | xargs dirname | xargs dirname`
+
+echo "+-ulcb--+"
+echo "|(i) (o)|"
+echo "+-------+"
+echo "+-kf----+"
+echo "|( ) ( )|"
+echo "|( ) (o)|"
+echo "+-------+"
+
+test() {
+	WAV=$1
+	EXP=$2
+
+	${TOP}/script/sample-test-loopback.sh -o plughw:0,2 -f ${TOP}/renesas/${DIR}/${WAV}.wav -e ${EXP}
+}
+
+test6() {
+	DIR=$1
+	echo "${DIR} 6ch test"
+	test 012345 45
+	test 456789 89
+	test 543210 10
+	test 987654 54
+}
+
+test8() {
+	DIR=$1
+	echo "${DIR} 8ch test"
+	test 01234567 45
+	test 23456789 67
+	test 76543210 32
+	test 98765432 54
+}
+
+test6 44100
+test6 48000
+test8 44100
+test8 48000

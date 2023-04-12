@@ -1,0 +1,11 @@
+#! /bin/sh
+#===============================
+#
+# amixer
+#
+# 2020/10/06 Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+#===============================
+amixer set "pcm3168a DAC1" 50%
+amixer set "pcm3168a DAC2" 50%
+amixer set "pcm3168a DAC3" 50%
+amixer set "pcm3168a DAC4" 50%

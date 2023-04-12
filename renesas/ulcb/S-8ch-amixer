@@ -1,0 +1,14 @@
+#! /bin/sh
+#===============================
+#
+# amixer
+#
+# 2020/10/06 Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+#===============================
+amixer set "DVC Out" 1%
+amixer set "DVC In"  20%
+
+amixer set "DAC1" 50%
+amixer set "DAC2" 50%
+amixer set "DAC3" 50%
+amixer set "DAC4" 50%

@@ -1,0 +1,35 @@
+============== -*- outline -*- ==============
+
+		ULCB/KF sound test
+
+2023/04/12	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+=============================================
+
+* Prepare
+
+	Connect ULCB and KF sound input/output like below.
+	You need to use headphone branch cable.
+
+	+-ulcb--+
+	|(i) (o)|
+	+-------+
+	+-kf----+
+	|( ) ( )|
+	|( ) (o)|
+	+-------+
+
+* Test
+
+	If your kernel / DT was
+		ulcb-simple-audio-card.dtsi
+		ulcb-audio-graph-card.dtsi
+		ulcb-audio-graph-card2.dtsi
+	then
+		run ALL-test-2ch+8ch.sh
+
+	If your kernel / DT was
+		ulcb-simple-audio-card-mix+split.dtsi
+		ulcb-audio-graph-card-mix+split.dtsi
+		ulcb-audio-graph-card2-mix+split.dtsi
+	then
+		run ALL-test-mix+split.sh

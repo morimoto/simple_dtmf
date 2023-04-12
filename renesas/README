@@ -1,0 +1,27 @@
+============== -*- outline -*- ==============
+
+              Sound Test for Renesas board
+
+2023/04/12	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+=============================================
+
+* What is this ?
+
+	Renesas board Sound test by using simple_dtmf script.
+
+* Prepare
+
+	You need to compile simple_dtmf for Renesas board (= ARM64).
+	see ${TOP}/README
+
+	Then, you need to create test wav file.
+
+
+		> cd ${TOP}/renesas
+		> make
+
+* Test
+
+	You can find test for each board.
+	see README on each board
+

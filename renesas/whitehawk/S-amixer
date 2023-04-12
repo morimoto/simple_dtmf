@@ -1,0 +1,4 @@
+amixer set "Headphone" 40%
+amixer set "Headphone" on
+amixer set "Mixout Left DAC Left" on
+amixer set "Mixout Right DAC Right" on
