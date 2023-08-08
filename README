@@ -67,6 +67,12 @@
 	> simple_dtmf -i 48000_2ch/9.wav
 	99
 
+	Because it is supporting 16bit data only,
+	you need to indicate it when recording.
+
+	> arecord -t wav -r 48000 -c 2 -f S16 xxx.wav
+	                               ^^^^^^
+
 * wav info
 
 	simple DTMF will indicate wav file info.
