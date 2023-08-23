@@ -1,4 +1,5 @@
 *.o
 *.mk
+*.wav
 simple_dtmf
 .config
