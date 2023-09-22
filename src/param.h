@@ -9,15 +9,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <getopt.h>
-#include <errno.h>
-#include <math.h>
-
-#define s16	signed short
-
-#define u16	unsigned short
-#define u32	unsigned int
+#include "common.h"
 
 #define FLAG_TYPE_MASK	(0xF << 0)
 #define FLAG_TYPE_OUT	(0x1 << 0)
@@ -47,15 +40,8 @@ struct dev_param {
 	char *filename;
 };
 
-#define printv(param, fmt...) if (param->flag & FLAG_VERBOSE) printf(fmt)
-#ifdef _DEBUG
-#define printd(fmt...)	printf(" * " fmt)
-#else
-#define printd(fmt...)
-#endif
-
-char dtmf_analyze(struct dev_param *param);
-int  dtmf_fill(struct dev_param *param, char num);
+char dtmf_analyze(s16 *buf, int length, int rate);
+int dtmf_fill(s16 *buf, int length, int rate, int sample, char num);
 
 int wav_write_header(struct dev_param *param);
 int wav_write_data(struct dev_param *param, int chan);

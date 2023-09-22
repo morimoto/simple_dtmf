@@ -183,7 +183,10 @@ static int __dtmf_wav_write(struct dev_param *param, char *filename)
 	for (int chan = 0; chan < param->chan; chan++) {
 		num = param->filename[chan];
 
-		ret = dtmf_fill(param, num);
+		ret = dtmf_fill(param->buf,
+				param->length,
+				param->rate,
+				param->sample, num);
 		if (ret < 0)
 			goto err;
 
@@ -283,7 +286,9 @@ static int dtmf_wav_analyze(struct dev_param *param)
 		if (ret < 0)
 			goto free;
 
-		printf("%c", dtmf_analyze(param));
+		printf("%c", dtmf_analyze(param->buf,
+					  param->length,
+					  param->rate));
 	}
 
 	// success

@@ -4,7 +4,8 @@
 //
 // Copyright (c) 2022 Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 //
-#include "param.h"
+
+#include "common.h"
 
 //=================================================
 //
@@ -41,7 +42,6 @@ const static struct tone_info tone_info[] = {
 	{ '8', TONE_789C, TONE_2580 },
 	{ '9', TONE_789C, TONE_369x },
 };
-const static char unknown = '?';
 
 #define PI2		(M_PI * 2)
 
@@ -50,9 +50,9 @@ const static char unknown = '?';
 // goertzel
 //
 //=======================================
-static double goertzel(struct dev_param *param, int dtmf_fq)
+static double goertzel(s16 *buf, int length, int rate, int dtmf_fq)
 {
-	double omega	= PI2 * dtmf_fq / param->rate;
+	double omega	= PI2 * dtmf_fq / rate;
 	double sine	= sin(omega);
 	double cosine	= cos(omega);
 	double coeff	= cosine * 2;
@@ -60,14 +60,14 @@ static double goertzel(struct dev_param *param, int dtmf_fq)
 	double q1	= 0;
 	double q2	= 0;
 
-	for (int i = 0; i < param->length; i++) {
-		q0 = coeff * q1 - q2 + param->buf[i];
+	for (int i = 0; i < length; i++) {
+		q0 = coeff * q1 - q2 + buf[i];
 		q2 = q1;
 		q1 = q0;
 	}
 
-	double real = (q1 - q2 * cosine) / (param->length / 2.0);
-	double imag = (q2 * sine)        / (param->length / 2.0);
+	double real = (q1 - q2 * cosine) / (length / 2.0);
+	double imag = (q2 * sine)        / (length / 2.0);
 
 	return sqrt(real * real + imag * imag);
 }
@@ -78,7 +78,7 @@ static double goertzel(struct dev_param *param, int dtmf_fq)
 //
 //=======================================
 #define DTMF_LEVELS_MAX	4
-static void __dtmf_analyze(struct dev_param *param, const int *fq, int *ret)
+static void __dtmf_analyze(s16 *buf, int length, int rate, const int *fq, int *ret)
 {
 	double level[DTMF_LEVELS_MAX];
 	int i, idx = 0;
@@ -87,7 +87,7 @@ static void __dtmf_analyze(struct dev_param *param, const int *fq, int *ret)
 	// analyze dtmf
 	//==========================
 	for (i = 0; i < DTMF_LEVELS_MAX; i++) {
-		level[i] = goertzel(param, fq[i]);
+		level[i] = goertzel(buf, length, rate, fq[i]);
 
 		printd("%8d : %10.5f\n", fq[i], level[i]);
 
@@ -116,15 +116,15 @@ static void __dtmf_analyze(struct dev_param *param, const int *fq, int *ret)
 	*ret = fq[idx];
 }
 
-char dtmf_analyze(struct dev_param *param)
+char dtmf_analyze(s16 *buf, int length, int rate)
 {
 	static const int dtmf_fq_low[DTMF_LEVELS_MAX] = { TONE_123A, TONE_456B, TONE_789C, TONE_x0xD };
 	static const int dtmf_fq_hi[ DTMF_LEVELS_MAX] = { TONE_147x, TONE_2580, TONE_369x, TONE_ABCD };
 	int low = -1;
 	int hi  = -1;
 
-	__dtmf_analyze(param, dtmf_fq_low, &low);
-	__dtmf_analyze(param, dtmf_fq_hi,  &hi);
+	__dtmf_analyze(buf, length, rate, dtmf_fq_low, &low);
+	__dtmf_analyze(buf, length, rate, dtmf_fq_hi,  &hi);
 
 	if (low < 0 || hi < 0)
 		goto err;
@@ -144,9 +144,9 @@ err:
 // dtmf_fill
 //
 //=======================================
-int dtmf_fill(struct dev_param *param, char num)
+int dtmf_fill(s16 *buf, int length, int rate, int sample, char num)
 {
-	long volume		= 40000000 / param->rate;
+	long volume		= 40000000 / rate;
 	double phase_low	= 0;
 	double phase_hi		= 0;
 	double add_low;
@@ -157,7 +157,7 @@ int dtmf_fill(struct dev_param *param, char num)
 
 	if (num == '_') {
 		/* do nothing */
-		memset(param->buf, 0, param->length * param->sample);
+		memset(buf, 0, length * sample);
 		return 0;
 	}
 
@@ -172,14 +172,14 @@ int dtmf_fill(struct dev_param *param, char num)
 	return -EINVAL;
 
 found:
-	add_low		= PI2 * tone_low / param->rate;
-	add_hi		= PI2 * tone_hi  / param->rate;
-	for (i = 0; i < param->length; i++) {
+	add_low		= PI2 * tone_low / rate;
+	add_hi		= PI2 * tone_hi  / rate;
+	for (i = 0; i < length; i++) {
 
 		if (add_low != 0) v += sin(phase_low) * volume;
 		if (add_hi  != 0) v += sin(phase_hi)  * volume;
 
-		param->buf[i] = v;
+		buf[i] = v;
 
 		phase_low += add_low;
 		phase_hi  += add_hi;
