@@ -5,6 +5,9 @@
 // Copyright (c) 2022 Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 //
 #include "param.h"
+
+#define VERSION		"1.0.0"
+
 //=======================================
 //
 // usage
@@ -13,7 +16,7 @@
 //=======================================
 static void usage(void)
 {
-	printf(
+	printf( "simple_dtmf v%s\n\n"
 		"(output) simple_dtmf -o [rcv]\n\n"
 		"	-o : create nums (0123456789 or _)\n"
 		"	-r : rate (default: 8000)\n"
@@ -22,7 +25,8 @@ static void usage(void)
 		"(input) simple_dtmf [v] -i file.wav\n\n"
 		"	-i : input file\n"
 		"	-v : verbose print\n\n"
-		"(info)  simple_dtmf -l file.wav\n"
+		"(info)  simple_dtmf -l file.wav\n",
+		VERSION
 		);
 }
 
