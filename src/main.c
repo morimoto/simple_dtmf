@@ -5,7 +5,6 @@
 // Copyright (c) 2022 Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 //
 #include "param.h"
-
 //=======================================
 //
 // usage
@@ -14,17 +13,16 @@
 //=======================================
 static void usage(void)
 {
-	printf("\n\n"
-		"simple_dtmf [orcv]\n\n"
+	printf(
+		"(output) simple_dtmf -o [rcv]\n\n"
 		"	-o : create nums (0123456789 or _)\n"
-		"	-r : rate\n"
-		"	-c : chan\n"
+		"	-r : rate (default: 8000)\n"
+		"	-c : chan (default: 2)\n"
 		"	-v : verbose print\n\n"
-		"simple_dtmf [iv]\n\n"
+		"(input) simple_dtmf [v] -i file.wav\n\n"
 		"	-i : input file\n"
 		"	-v : verbose print\n\n"
-		"simple_dtmf [l]\n\n"
-		"	-l : input file info\n"
+		"(info)  simple_dtmf -l file.wav\n"
 		);
 }
 
