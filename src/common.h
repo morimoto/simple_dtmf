@@ -19,11 +19,4 @@
 
 const static char unknown = '?';
 
-#define printv(param, fmt...) if (param->flag & FLAG_VERBOSE) printf(fmt)
-#ifdef _DEBUG
-#define printd(fmt...)	printf(" * " fmt)
-#else
-#define printd(fmt...)
-#endif
-
 #endif /* __COMMON_H */

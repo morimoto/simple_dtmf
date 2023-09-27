@@ -9,6 +9,8 @@
 #define VERSION		"1.0.0"
 #define MAX_CHAN	16
 
+#define is_versbose(param)	(param->flag & FLAG_VERBOSE)
+
 //=======================================
 //
 // usage
@@ -225,10 +227,12 @@ static int dtmf_wav_write(struct dev_param *param)
 	if (ret < 0)
 		goto err;
 
-	printv(param, "chan    : %d\n", param->chan);
-	printv(param, "rate    : %d\n", param->rate);
-	printv(param, "bit     : %d\n", param->sample * 8);
-	printv(param, "length  : %d\n", param->length);
+	if (is_versbose(param)) {
+		printf("chan    : %d\n", param->chan);
+		printf("rate    : %d\n", param->rate);
+		printf("bit     : %d\n", param->sample * 8);
+		printf("length  : %d\n", param->length);
+	}
 
 	//==========================
 	// create nums
@@ -281,11 +285,12 @@ static int dtmf_wav_analyze(struct dev_param *param)
 	if (ret < 0)
 		goto err;
 
-	printv(param, "chan    : %d\n", param->chan);
-	printv(param, "rate    : %d\n", param->rate);
-	printv(param, "bit     : %d\n", param->sample * 8);
-	printv(param, "length  : %d\n", param->length);
-
+	if (is_versbose(param)) {
+		printf("chan    : %d\n", param->chan);
+		printf("rate    : %d\n", param->rate);
+		printf("bit     : %d\n", param->sample * 8);
+		printf("length  : %d\n", param->length);
+	}
 	// alloc buf
 	ret = buf_alloc(param);
 	if (ret < 0)
@@ -354,12 +359,13 @@ static int dtmf_wav_analyze(struct dev_param *param)
 								 param->rate);
 	}
 
-	if (param->flag & FLAG_VERBOSE)
+	if (is_versbose(param)) {
 		for (i = 0; i < param->chan; i++) {
 			for (j = 0; j < challenge; j++)
 				printf("%c", result[challenge * i + j]);
 			printf("\n");
 		}
+	}
 
 	//
 	// In reality, data might have some dfmfs, and some parts might be noise

@@ -89,8 +89,6 @@ static void __dtmf_analyze(s16 *buf, int length, int rate, const int *fq, int *r
 	for (i = 0; i < DTMF_LEVELS_MAX; i++) {
 		level[i] = goertzel(buf, length, rate, fq[i]);
 
-		printd("%8d : %10.5f\n", fq[i], level[i]);
-
 		// FIXME
 		if (level[idx] < level[i])
 			idx = i;
