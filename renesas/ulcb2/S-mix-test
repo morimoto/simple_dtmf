@@ -1,0 +1,27 @@
+#! /bin/sh
+TOP=`readlink -f "$0" | xargs dirname | xargs dirname | xargs dirname`
+
+echo "+-ulcb--+"
+echo "|(i) (o)|"
+echo "+-------+"
+
+testmix() {
+	DIR=$1
+	WAV1=$2
+	WAV2=$3
+	EXP=$4
+
+	${TOP}/script/sample-test-loopback.sh -o plughw:0,0 -o plughw:0,1 -f ${TOP}/renesas/${DIR}/${WAV1}.wav -f ${TOP}/renesas/${DIR}/${WAV2}.wav -e ${EXP}
+}
+
+echo "MIXer test on 44100"
+testmix 44100 5_ _8 58
+testmix 44100 _9 1_ 19
+testmix 44100 2_ _7 27
+testmix 44100 _6 9_ 96
+
+echo "MIXer test on 48000"
+testmix 48000 1_ _8  18
+testmix 48000 _7 2_  27
+testmix 48000 3_ _6  36
+testmix 48000 _5 4_  45
