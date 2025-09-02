@@ -74,8 +74,8 @@ int wav_write_header(struct dev_param *param)
 	wav.wFormatTag		= 0x0001;
 	wav.nChannels		= param->chan;
 	wav.nSamplesPerSec	= param->rate;
-	wav.wBitsPerSample	= param->sample * 8;
-	wav.nBlockAlign		= param->sample * param->chan;
+	wav.wBitsPerSample	= param->sample;
+	wav.nBlockAlign		= param->sample / 8 * param->chan;
 	wav.nAvgBytesPerSec	= wav.nBlockAlign * param->rate;
 	wav.SubChunckSize	= wav.nBlockAlign * param->length;
 	wav.rsize		= wav.SubChunckSize + sizeof(struct wav) - 8;
@@ -118,7 +118,7 @@ int wav_write_data(struct dev_param *param, int chan)
 	// skip "header part" and
 	// 1st "non target channel" (offset)
 	//==========================
-	offset = chan * param->sample;
+	offset = chan * param->sample / 8;
 	if (fseek(fp, sizeof(struct wav) + offset, SEEK_SET))
 		goto err;
 
@@ -126,10 +126,10 @@ int wav_write_data(struct dev_param *param, int chan)
 	// write data
 	//==========================
 	ret = -EIO;
-	offset = (param->chan - 1) * param->sample;
+	offset = (param->chan - 1) * param->sample / 8;
 
 	for (int i = 0; i < param->length; i++) {
-		if (!fwrite(&param->buf[i], param->sample, 1, fp))
+		if (!fwrite(&param->buf[i], param->sample / 8, 1, fp))
 			goto err;
 
 		if (offset > 0 && fseek(fp, offset, SEEK_CUR))
@@ -214,8 +214,8 @@ int wav_read_header(struct dev_param *param)
 	//==========================
 	param->chan	= wav.nChannels;
 	param->rate	= wav.nSamplesPerSec;
-	param->sample	= wav.wBitsPerSample / 8;
-	param->length	= wav.SubChunckSize / param->chan / param->sample;
+	param->sample	= wav.wBitsPerSample;
+	param->length	= wav.SubChunckSize / param->chan / (param->sample / 8);
 
 	// success
 	ret = 0;
@@ -246,7 +246,7 @@ int wav_read_data(struct dev_param *param, int chan)
 	// skip "header part" and
 	// 1st "non target channel" (offset)
 	//==========================
-	offset = chan * param->sample;
+	offset = chan * param->sample / 8;
 	if (fseek(fp, sizeof(struct wav) + offset, SEEK_SET))
 		goto err;
 
@@ -254,10 +254,10 @@ int wav_read_data(struct dev_param *param, int chan)
 	// read data
 	//==========================
 	ret = -EINVAL;
-	offset = (param->chan - 1) * param->sample;
+	offset = (param->chan - 1) * param->sample / 8;
 
 	for (int i = 0; i < param->length; i++) {
-		if (!fread(&param->buf[i], param->sample, 1, fp))
+		if (!fread(&param->buf[i], param->sample / 8, 1, fp))
 			goto err;
 
 		if (offset > 0 && fseek(fp, offset, SEEK_CUR))

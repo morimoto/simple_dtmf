@@ -42,7 +42,7 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 	// default settings
 	param->chan	= 2;		// 2ch
 	param->rate	= 8000;
-	param->sample	= sizeof(s16);	// update me
+	param->sample	= 16;		// update me
 	param->nums	= NULL;
 	param->filename	= NULL;
 
@@ -142,7 +142,7 @@ static int buf_alloc(struct dev_param *param)
 {
 	s16 *buf;
 
-	buf = calloc(param->length, param->sample);
+	buf = calloc(param->length, param->sample / 8);
 	if (!buf)
 		return -ENOMEM;
 
@@ -193,7 +193,7 @@ static int __dtmf_wav_write(struct dev_param *param, char *filename)
 		ret = dtmf_fill(param->buf,
 				param->length,
 				param->rate,
-				param->sample, num);
+				param->sample / 8, num);
 		if (ret < 0)
 			goto err;
 
@@ -230,7 +230,7 @@ static int dtmf_wav_write(struct dev_param *param)
 	if (is_versbose(param)) {
 		printf("chan    : %d\n", param->chan);
 		printf("rate    : %d\n", param->rate);
-		printf("bit     : %d\n", param->sample * 8);
+		printf("bit     : %d\n", param->sample);
 		printf("length  : %d\n", param->length);
 	}
 
@@ -288,7 +288,7 @@ static int dtmf_wav_analyze(struct dev_param *param)
 	if (is_versbose(param)) {
 		printf("chan    : %d\n", param->chan);
 		printf("rate    : %d\n", param->rate);
-		printf("bit     : %d\n", param->sample * 8);
+		printf("bit     : %d\n", param->sample);
 		printf("length  : %d\n", param->length);
 	}
 	// alloc buf
@@ -498,7 +498,7 @@ static int dtmf_wav_info(struct dev_param *param)
 
 	printf("chan:%d\n", param->chan);
 	printf("rate:%d\n", param->rate);
-	printf("bit :%d\n", param->sample * 8);
+	printf("bit :%d\n", param->sample);
 
 err:
 	return ret;
