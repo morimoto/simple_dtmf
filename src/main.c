@@ -325,10 +325,11 @@ static int dtmf_wav_analyze(struct dev_param *param)
 	//	       <><><><><><><><><><>  (challenge)
 	//	buf = [xxxxxxxxxxxxxxxxxxxx ... xx]
 	//
-	// 1 rate   has DEGREE% challenges (= param->rate / 100 * DEGREE)
-	// Total challenges = param->length / (param->rate / 100 * DEGREE)
-	//		    = param->length * 100 / param->rate / DEGREE
-	challenge = param->length * 100 / param->rate / DEGREE;
+	// width = 1 challenge size
+	width = param->rate / 100 * DEGREE;
+
+	// Total challenges
+	challenge = param->length / width;
 
 	// 1ch needs "challenge" results, and we has param->chan.
 	//
@@ -340,9 +341,6 @@ static int dtmf_wav_analyze(struct dev_param *param)
 	result = calloc(param->chan, challenge);
 	if (!result)
 		goto err_buff;
-
-	// width = 1 challenge size
-	width = param->rate / 100 * DEGREE;
 
 	// analyze for each channels.
 	for (i = 0; i < param->chan; i++) {
