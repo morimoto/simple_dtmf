@@ -6,7 +6,7 @@
 //
 #include "param.h"
 
-#define VERSION		"1.0.0"
+#define VERSION		"1.1.0"
 #define MAX_CHAN	16
 
 #define is_versbose(param)	(param->flag & FLAG_VERBOSE)
