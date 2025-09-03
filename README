@@ -57,6 +57,34 @@
 	It can't analyze 9_.wav, because it can't distinguish between "noise" and "continued zero data".
 	You need to use -v option for analyze "no data" file.
 
+** by "sox" command
+
+	You can create DTMF sound via "sox" command too.
+
+		> sudo apt install sox
+
+	create "3", by 1ch
+
+		> sox -n -r 8000 -b 16 -c 1 sox_3.wav synth 1 sine 697 sine 1477 vol 0.5
+		> ls
+		sox_3.wav
+
+		> simple_dtmf -i sox_3.wav
+		3
+
+	create "23", by 2ch
+		> sox -n -r 8000 -b 16 -c 1 sox_2.wav synth 1 sine 697 sine 1336 vol 0.5
+		> sox -n -r 8000 -b 16 -c 1 sox_3.wav synth 1 sine 697 sine 1477 vol 0.5
+		> ls
+		sox_2.wav  sox_3.wav
+
+		> sox -M sox_2.wav sox_3.wav sox_23.wav remix 1 2
+		> ls
+		sox_2.wav  sox_3.wav  sox_23.wav
+
+		> ./simple_dtmf -i sox_23.wav
+		23
+
 * analyze DTMF tone wav file
 
 	simple DTMF will analyze input wav file.
