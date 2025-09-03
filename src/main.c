@@ -425,45 +425,43 @@ static int dtmf_wav_analyze(struct dev_param *param)
 			// [.. ?4 44 ..]
 			// it is also noise, but we can't judge it now.
 			// late judge
+
+			// finish if it was last challenge
+			if (j + 1 >= challenge)
+				continue;
+
 			late_j = 1;
-			continue;
 		}
 
-		// We want like below
-		//	11,22,33,?9,44,55
+		if (late_j) {
+			int noise = 0;
+
+			//      *
+			// [.. ?4 44 ..]     noise
+			// [.. ?9 ?4 ..] not noise
+			for (i = 0; i < param->chan; i++)
+				if (result[challenge * i + j] != unknown &&
+				    (result[challenge * i + j] ==
+				     result[challenge * i + j + 1]))
+					noise++;
+
+			if (noise)
+				goto next;
+		}
+
 		if (comma)
 			printf(",");
 
-		if (late_j) {
-			int judge = 0;
-
-			//        *
-			// [.. ?4 44 ..]
-			// [.. ?9 ?4 ..]
-			for (i = 0; i < param->chan; i++)
-				if (result[challenge * i + j] != unknown &&
-				    result[challenge * i + j] == prev[i])
-					judge++;
-
-			//        *
-			// [.. ?4 44 ..]
-			// "?4" is noise
-
-			//        *
-			// [.. ?9 ?4 ..]
-			// "?9" is unknown data
-			if (judge)
-				for (i = 0; i < param->chan; i++)
-					printf("%c", prev[i]);
-		}
-
-		// print current data, and keep prev[]
-		for (i = 0; i < param->chan; i++) {
-			comma = 1;
-			late_j = 0;
+		// print current data
+		for (i = 0; i < param->chan; i++)
 			printf("%c", result[challenge * i + j]);
+
+next:		// keep prev[]
+		for (i = 0; i < param->chan; i++)
 			prev[i] = result[challenge * i + j];
-		}
+
+		comma  = 1;
+		late_j = 0;
 	}
 
 	// all "?" case

@@ -50,7 +50,11 @@
 		> simple_dtmf -c 2 -o 9_
 		9_.wav
 
-	9_.wav has "tone 9" on 2ch, "no data" on 2ch.
+	9_.wav has "tone 9" on 2ch, "zero data" on 2ch.
+
+	* Note *
+	It can't analyze 9_.wav, because it can't distinguish between "noise" and "continued zero data".
+	You need to use -v option for analyze "no data" file.
 
 * analyze DTMF tone wav file
 
