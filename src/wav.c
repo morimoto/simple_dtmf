@@ -215,7 +215,7 @@ int wav_read_header(struct dev_param *param)
 	param->chan	= wav.nChannels;
 	param->rate	= wav.nSamplesPerSec;
 	param->sample	= wav.wBitsPerSample;
-	param->length	= wav.SubChunckSize / param->chan / (param->sample / 8);
+	param->length	= wav.SubChunckSize / wav.nBlockAlign;
 
 	// success
 	ret = 0;
