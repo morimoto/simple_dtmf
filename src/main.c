@@ -49,7 +49,7 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 	//==========================
 	// parse
 	//==========================
-	while ((opt = getopt(argc, argv, "o:i:l:r:c:vh")) != -1) {
+	while ((opt = getopt(argc, argv, "o:i:l:r:c:s:vh")) != -1) {
 		switch (opt) {
 		case 'o':
 			param->flag	|= FLAG_TYPE_OUT;
@@ -68,6 +68,9 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 			break;
 		case 'c':
 			sscanf(optarg, "%d", &param->chan);
+			break;
+		case 's':
+			sscanf(optarg, "%d", &param->sample);
 			break;
 		case 'v':
 			param->flag |= FLAG_VERBOSE;
@@ -108,6 +111,14 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 	if (param->chan > MAX_CHAN)
 		goto err;
 
+	switch (param->sample) {
+	case 16:
+	case 24:
+	case 32:
+		break;
+		goto err;
+	}
+
 	switch (param->rate) {
 	case   8000:
 	case  11025:
@@ -140,9 +151,9 @@ err:
 //=======================================
 static int buf_alloc(struct dev_param *param)
 {
-	s16 *buf;
+	s32 *buf;
 
-	buf = calloc(param->length, param->sample / 8);
+	buf = calloc(32, param->length);
 	if (!buf)
 		return -ENOMEM;
 
@@ -193,7 +204,7 @@ static int __dtmf_wav_write(struct dev_param *param, char *filename)
 		ret = dtmf_fill(param->buf,
 				param->length,
 				param->rate,
-				param->sample / 8, num);
+				param->sample, num);
 		if (ret < 0)
 			goto err;
 

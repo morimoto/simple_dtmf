@@ -12,7 +12,7 @@
 #include <string.h>
 #include <errno.h>
 
-#define s16	signed short
+#define s32	int
 
 #define u16	unsigned short
 #define u32	unsigned int

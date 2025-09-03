@@ -30,18 +30,21 @@ struct dev_param {
 	 */
 	int rate;
 	int chan;
-	int sample;	/* 16 bit for now */
+	int sample;	/* 16/24/32 */
 	int length;
 
 	u32 flag;
 
-	s16 *buf;
+	s32 *buf;	/* use s32 for all 16/24/32 */
 	char *nums;
 	char *filename;
 };
 
-char dtmf_analyze(s16 *buf, int length, int rate);
-int dtmf_fill(s16 *buf, int length, int rate, int sample, char num);
+/* 24bit uses padding */
+#define sample_to_byte(sample) ((sample == 16) ? 2 : 4)
+
+char dtmf_analyze(s32 *buf, int length, int rate);
+int dtmf_fill(s32 *buf, int length, int rate, int sample, char num);
 
 int wav_write_header(struct dev_param *param);
 int wav_write_data(struct dev_param *param, int chan);

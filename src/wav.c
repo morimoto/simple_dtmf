@@ -75,7 +75,7 @@ int wav_write_header(struct dev_param *param)
 	wav.nChannels		= param->chan;
 	wav.nSamplesPerSec	= param->rate;
 	wav.wBitsPerSample	= param->sample;
-	wav.nBlockAlign		= param->sample / 8 * param->chan;
+	wav.nBlockAlign		= sample_to_byte(param->sample) * param->chan;
 	wav.nAvgBytesPerSec	= wav.nBlockAlign * param->rate;
 	wav.SubChunckSize	= wav.nBlockAlign * param->length;
 	wav.rsize		= wav.SubChunckSize + sizeof(struct wav) - 8;
@@ -107,6 +107,7 @@ int wav_write_data(struct dev_param *param, int chan)
 	FILE *fp;
 	int ret = -ENOENT;
 	int offset;
+	int byte = sample_to_byte(param->sample);
 
 	//==========================
 	// open the file
@@ -118,7 +119,7 @@ int wav_write_data(struct dev_param *param, int chan)
 	// skip "header part" and
 	// 1st "non target channel" (offset)
 	//==========================
-	offset = chan * param->sample / 8;
+	offset = chan * byte;
 	if (fseek(fp, sizeof(struct wav) + offset, SEEK_SET))
 		goto err;
 
@@ -126,10 +127,11 @@ int wav_write_data(struct dev_param *param, int chan)
 	// write data
 	//==========================
 	ret = -EIO;
-	offset = (param->chan - 1) * param->sample / 8;
+	offset = (param->chan - 1) * byte;
 
 	for (int i = 0; i < param->length; i++) {
-		if (!fwrite(&param->buf[i], param->sample / 8, 1, fp))
+		// FIXME: little endian
+		if (!fwrite(&param->buf[i], byte, 1, fp))
 			goto err;
 
 		if (offset > 0 && fseek(fp, offset, SEEK_CUR))
@@ -173,7 +175,7 @@ int wav_read_header(struct dev_param *param)
 
 	chan	= wav.nChannels;
 	rate	= wav.nSamplesPerSec;
-	sample	= wav.wBitsPerSample / 8;
+	sample	= wav.wBitsPerSample;
 
 	//==========================
 	// name part check
@@ -202,9 +204,15 @@ int wav_read_header(struct dev_param *param)
 		goto err;
 	if (wav.wFormatTag != 0x0001) /* WAVE_FORMAT_PCM */
 		goto err;
-	if (sample != 2) /* 16bit only for now */
+	switch (sample) {
+	case 16:
+	case 24:
+	case 32:
+		break;
+	default:
 		goto err;
-	if ((chan * sample) != wav.nBlockAlign)
+	}
+	if ((chan * sample_to_byte(sample)) != wav.nBlockAlign)
 		goto err;
 	if ((wav.nBlockAlign * rate) != wav.nAvgBytesPerSec)
 		goto err;
@@ -235,6 +243,7 @@ int wav_read_data(struct dev_param *param, int chan)
 	FILE *fp;
 	int ret = -ENOMEM;
 	int offset;
+	int byte = sample_to_byte(param->sample);
 
 	//==========================
 	// file open
@@ -246,7 +255,7 @@ int wav_read_data(struct dev_param *param, int chan)
 	// skip "header part" and
 	// 1st "non target channel" (offset)
 	//==========================
-	offset = chan * param->sample / 8;
+	offset = chan * byte;
 	if (fseek(fp, sizeof(struct wav) + offset, SEEK_SET))
 		goto err;
 
@@ -254,11 +263,27 @@ int wav_read_data(struct dev_param *param, int chan)
 	// read data
 	//==========================
 	ret = -EINVAL;
-	offset = (param->chan - 1) * param->sample / 8;
+	offset = (param->chan - 1) * byte;
 
 	for (int i = 0; i < param->length; i++) {
-		if (!fread(&param->buf[i], param->sample / 8, 1, fp))
+		// FIXME: little endian
+		if (!fread(&param->buf[i], byte, 1, fp))
 			goto err;
+
+		/*
+		 * FIXME
+		 *
+		 * Because we are using 4byte buffer for 16/24/32bit data,
+		 * we need to expand top 2byte of buffer in 16bit case.
+		 */
+		if (param->sample == 16) {
+			short ext = 0;
+
+			if (param->buf[i] & 0x8000)
+				ext = 0xffff;
+
+			*((short *)(param->buf + i) + 1) = ext;
+		}
 
 		if (offset > 0 && fseek(fp, offset, SEEK_CUR))
 			goto err;
