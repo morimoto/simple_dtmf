@@ -142,7 +142,7 @@ err:
 // dtmf_fill
 //
 //=======================================
-int dtmf_fill(s16 *buf, int length, int rate, int sample, char num)
+int dtmf_fill(s16 *buf, int length, int rate, int word, char num)
 {
 	long volume		= 40000000 / rate;
 	double phase_low	= 0;
@@ -155,7 +155,7 @@ int dtmf_fill(s16 *buf, int length, int rate, int sample, char num)
 
 	if (num == '_') {
 		/* do nothing */
-		memset(buf, 0, length * sample);
+		memset(buf, 0, length * word);
 		return 0;
 	}
 

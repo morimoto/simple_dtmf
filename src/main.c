@@ -42,6 +42,7 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 	// default settings
 	param->chan	= 2;		// 2ch
 	param->rate	= 8000;
+	param->word	= 2;		// update me
 	param->sample	= 16;		// update me
 	param->nums	= NULL;
 	param->filename	= NULL;
@@ -142,7 +143,7 @@ static int buf_alloc(struct dev_param *param)
 {
 	s16 *buf;
 
-	buf = calloc(param->length, param->sample / 8);
+	buf = calloc(param->length, param->word);
 	if (!buf)
 		return -ENOMEM;
 
@@ -193,7 +194,7 @@ static int __dtmf_wav_write(struct dev_param *param, char *filename)
 		ret = dtmf_fill(param->buf,
 				param->length,
 				param->rate,
-				param->sample / 8, num);
+				param->word, num);
 		if (ret < 0)
 			goto err;
 

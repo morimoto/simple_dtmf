@@ -22,6 +22,7 @@
 struct dev_param {
 	/*
 	 * <---- chan ---->
+	 * <-word->
 	 * [sample][sample] ^
 	 * [sample][sample] |
 	 * ...              length
@@ -30,7 +31,8 @@ struct dev_param {
 	 */
 	int rate;
 	int chan;
-	int sample;	/* 16 bit for now */
+	int word;	/* (byte) word size */
+	int sample;	/* (bit)  16 bit for now */
 	int length;
 
 	u32 flag;

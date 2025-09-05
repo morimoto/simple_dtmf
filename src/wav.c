@@ -60,7 +60,7 @@ int wav_write_header(struct dev_param *param)
 	FILE *fp;
 	int null = 0;
 	int ret = -ENOENT;
-	int blockalign = param->sample / 8 * param->chan;
+	int blockalign = param->word * param->chan;
 
 	//==========================
 	// open the file
@@ -136,7 +136,7 @@ int wav_write_data(struct dev_param *param, int chan)
 	// skip "header part" and
 	// 1st "non target channel" (offset)
 	//==========================
-	offset = chan * param->sample / 8;
+	offset = chan * param->word;
 	if (fseek(fp, sizeof(struct wav_base) +
 		      sizeof(struct wav_data) + offset, SEEK_SET))
 		goto err;
@@ -145,10 +145,10 @@ int wav_write_data(struct dev_param *param, int chan)
 	// write data
 	//==========================
 	ret = -EIO;
-	offset = (param->chan - 1) * param->sample / 8;
+	offset = (param->chan - 1) * param->word;
 
 	for (int i = 0; i < param->length; i++) {
-		if (!fwrite(&param->buf[i], param->sample / 8, 1, fp))
+		if (!fwrite(&param->buf[i], param->word, 1, fp))
 			goto err;
 
 		if (offset > 0 && fseek(fp, offset, SEEK_CUR))
@@ -240,6 +240,7 @@ int wav_read_header(struct dev_param *param)
 	//==========================
 	param->chan	= wav.nChannels;
 	param->rate	= wav.nSamplesPerSec;
+	param->word	= wav.nBlockAlign / wav.nChannels;
 	param->sample	= wav.wBitsPerSample;
 	param->length	= data.SubChunckSize / wav.nBlockAlign;
 
@@ -272,7 +273,7 @@ int wav_read_data(struct dev_param *param, int chan)
 	// skip "header part" and
 	// 1st "non target channel" (offset)
 	//==========================
-	offset = chan * param->sample / 8;
+	offset = chan * param->word;
 	if (fseek(fp, sizeof(struct wav_base) +
 		      sizeof(struct wav_data) + offset, SEEK_SET))
 		goto err;
@@ -281,10 +282,10 @@ int wav_read_data(struct dev_param *param, int chan)
 	// read data
 	//==========================
 	ret = -EINVAL;
-	offset = (param->chan - 1) * param->sample / 8;
+	offset = (param->chan - 1) * param->word;
 
 	for (int i = 0; i < param->length; i++) {
-		if (!fread(&param->buf[i], param->sample / 8, 1, fp))
+		if (!fread(&param->buf[i], param->word, 1, fp))
 			goto err;
 
 		if (offset > 0 && fseek(fp, offset, SEEK_CUR))
