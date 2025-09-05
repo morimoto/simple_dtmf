@@ -28,6 +28,22 @@ struct wav_base {
 	u16  wBitsPerSample;		// 2: Bits per sample
 };
 
+struct wav_exp {
+	u16  cbSize;			// 2: 22
+	u16  wValidBitsPerSample;	// 2: Valid bit 24/32
+	u32  dwChannelMask;		// 4: speaker position
+	u32  GUID_1;			// 4: GUID: PCM: 0x00000001
+	u16  GUID_2;			// 2: GUID: PCM: 0x0000
+	u16  GUID_3;			// 2: GUID: PCM: 0x0010
+	u8   GUID_4[8];			// 8: GUID: PCM: {0x80,0x00,0x00,0xAA,0x00,0x38,0x9B,0x71}
+};
+
+struct wav_fact {
+	char SubChunck[ID_SIZE];	// 4: "fact"
+	u32 cksize;			// 4: chunk size
+	u32 dwSampleLength;		// 4: sample size
+};
+
 struct wav_data {
 	char SubChunck[ID_SIZE];	// 4: "data"
 	u32  SubChunckSize;		// 4: file size - 44
@@ -36,6 +52,7 @@ struct wav_data {
 const static char *str_riff	= "RIFF";
 const static char *str_wave	= "WAVE";
 const static char *str_fmt	= "fmt ";
+const static char *str_fact	= "fact";
 const static char *str_data	= "data";
 
 //=======================================
@@ -184,12 +201,11 @@ no_open:
 int wav_read_header(struct dev_param *param)
 {
 	struct wav_base wav;
+	struct wav_exp  exp;
 	struct wav_data data;
 	FILE *fp;
-	int rate;
-	int chan;
-	int sample;
 	int ret = -ENOENT;
+	char subchunck[ID_SIZE];
 
 	//==========================
 	// file open
@@ -203,10 +219,6 @@ int wav_read_header(struct dev_param *param)
 	ret = -EIO;
 	if (!fread(&wav, sizeof(struct wav_base), 1, fp))
 		goto err;
-
-	chan	= wav.nChannels;
-	rate	= wav.nSamplesPerSec;
-	sample	= wav.wBitsPerSample / 8;
 
 	//==========================
 	// name part check
@@ -223,21 +235,66 @@ int wav_read_header(struct dev_param *param)
 	if (ret)
 		goto err;
 
+	// It supports 16/24/32 bit only
+	switch (wav.wBitsPerSample) {
+	case 16:
+	case 24:
+	case 32:
+		break;
+	default:
+		goto err;
+	}
+
 	//==========================
 	// expectation part check
 	//==========================
+	/* WAVE_FORMAT_PCM */
+	if ((wav.cksize == 16) && (wav.wFormatTag == 0x0001))
+		goto data_part;
+	/* WAVE_FORMAT_EXTENSIBLE */
+	if ((wav.cksize == 40) && (wav.wFormatTag == 0xFFFE))
+		goto exp_part;
+
 	ret = -EINVAL;
-	if (wav.cksize != 16)
-		goto err;
-	if (wav.wFormatTag != 0x0001) /* WAVE_FORMAT_PCM */
-		goto err;
-	if (sample != 2) /* 16bit only for now */
-		goto err;
-	if ((chan * sample) != wav.nBlockAlign)
-		goto err;
-	if ((wav.nBlockAlign * rate) != wav.nAvgBytesPerSec)
+	goto err;
+
+exp_part:
+	//==========================
+	// exp part check
+	//==========================
+	if (!fread(&exp, sizeof(struct wav_exp), 1, fp))
 		goto err;
 
+	ret = -EINVAL;
+	if (exp.cbSize != 22)
+		goto err;
+
+	if (exp.GUID_1	  != 0x00000001	||
+	    exp.GUID_2	  != 0x0000	||
+	    exp.GUID_3	  != 0x0010	||
+	    exp.GUID_4[0] != 0x80	||
+	    exp.GUID_4[1] != 0x00	||
+	    exp.GUID_4[2] != 0x00	||
+	    exp.GUID_4[3] != 0xAA	||
+	    exp.GUID_4[4] != 0x00	||
+	    exp.GUID_4[5] != 0x38	||
+	    exp.GUID_4[6] != 0x9B	||
+	    exp.GUID_4[7] != 0x71)
+		goto err;
+
+	//==========================
+	// fact part check
+	//==========================
+	if (!fread(subchunck, ID_SIZE, 1, fp))
+		goto err;
+
+	ret = name_check(subchunck, str_fact);
+	if (ret)
+		goto err;
+
+	fseek(fp, sizeof(struct wav_fact) - ID_SIZE, SEEK_CUR);
+
+data_part:
 	//==========================
 	// data part check
 	//==========================
@@ -273,6 +330,10 @@ no_open:
 int wav_read_data(struct dev_param *param, int chan)
 {
 	FILE *fp;
+	struct wav_base wav;
+	struct wav_exp  exp;
+	struct wav_fact fact;
+	struct wav_data data;
 	int ret = -ENOMEM;
 	int offset;
 
@@ -286,9 +347,30 @@ int wav_read_data(struct dev_param *param, int chan)
 	// skip "header part" and
 	// 1st "non target channel" (offset)
 	//==========================
+	if (!fread(&wav, sizeof(struct wav_base), 1, fp))
+		goto err;
+
+	if ((wav.cksize == 16) && (wav.wFormatTag == 0x0001))
+		goto data_part;
+	/* WAVE_FORMAT_EXTENSIBLE */
+	if ((wav.cksize == 40) && (wav.wFormatTag == 0xFFFE))
+		goto exp_part;
+
+	ret = -EINVAL;
+	goto err;
+
+exp_part:
+	if (!fread(&exp, sizeof(struct wav_exp), 1, fp))
+		goto err;
+
+	if (!fread(&fact, sizeof(struct wav_fact), 1, fp))
+		goto err;
+data_part:
+	if (!fread(&data, sizeof(struct wav_data), 1, fp))
+		goto err;
+
 	offset = chan * param->word;
-	if (fseek(fp, sizeof(struct wav_base) +
-		      sizeof(struct wav_data) + offset, SEEK_SET))
+	if (fseek(fp, offset, SEEK_CUR))
 		goto err;
 
 	//==========================
@@ -318,6 +400,14 @@ int wav_read_data(struct dev_param *param, int chan)
 			if (minus)
 				param->buf[i] |= 0xffff0000;
 
+			break;
+		case 24:
+			if (param->buf[i] & 0x800000)
+				minus = 1;
+
+			param->buf[i] &= 0xffffff;
+			if (minus)
+				param->buf[i] |= 0xff000000;
 			break;
 		}
 

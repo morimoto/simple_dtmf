@@ -28,11 +28,12 @@
 	simple DTMF will create DTMF tone wav file (0.wav - 9.wav) to indicated dir.
 	It doesn't mind "ABCD*#".
 
-		simple_dtmf [orcv]
+		simple_dtmf [orcsv]
 
 		-o : create nums (0123456789 or _)
 		-r : rate
 		-c : chan
+		-s : samples
 		-v : verbose print
 
 	Each channels will have DTMF tone.

@@ -20,10 +20,11 @@
 static void usage(void)
 {
 	printf( "simple_dtmf v%s\n\n"
-		"(output) simple_dtmf -o [rcv]\n\n"
+		"(output) simple_dtmf -o [rcsv]\n\n"
 		"	-o : create nums (0123456789 or _)\n"
 		"	-r : rate (default: 8000)\n"
 		"	-c : chan (default: 2)\n"
+		"	-s : samples[16/24/32] (default: 16)\n"
 		"	-v : verbose print\n\n"
 		"(input) simple_dtmf [v] -i file.wav\n\n"
 		"	-i : input file\n"
@@ -50,7 +51,7 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 	//==========================
 	// parse
 	//==========================
-	while ((opt = getopt(argc, argv, "o:i:l:r:c:vh")) != -1) {
+	while ((opt = getopt(argc, argv, "o:i:l:r:c:s:vh")) != -1) {
 		switch (opt) {
 		case 'o':
 			param->flag	|= FLAG_TYPE_OUT;
@@ -69,6 +70,9 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 			break;
 		case 'c':
 			sscanf(optarg, "%d", &param->chan);
+			break;
+		case 's':
+			sscanf(optarg, "%d", &param->sample);
 			break;
 		case 'v':
 			param->flag |= FLAG_VERBOSE;
@@ -108,6 +112,18 @@ static int parse_options(int argc, char **argv, struct dev_param *param)
 		goto err;
 	if (param->chan > MAX_CHAN)
 		goto err;
+
+	switch (param->sample) {
+	case 16:
+		param->word = 2;
+		break;
+	case 24: // 24bit will be handled as 4bype in default
+	case 32:
+		param->word = 4;
+		break;
+	default:
+		goto err;
+	}
 
 	switch (param->rate) {
 	case   8000:

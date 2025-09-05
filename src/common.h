@@ -16,6 +16,7 @@
 
 #define u16	unsigned short
 #define u32	unsigned int
+#define u8	unsigned char
 
 const static char unknown = '?';
 
