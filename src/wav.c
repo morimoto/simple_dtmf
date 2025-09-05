@@ -14,7 +14,7 @@
 //
 //=================================================
 #define ID_SIZE 4
-struct wav {
+struct wav_base {
 	char riff[ID_SIZE];		// 4: "RIFF"
 	u32  rsize;			// 4: file size - 8
 	char ID[ID_SIZE];		// 4: "WAVE"
@@ -26,6 +26,9 @@ struct wav {
 	u32  nAvgBytesPerSec;		// 4: Data rate
 	u16  nBlockAlign;		// 2: Data block size (bytes)
 	u16  wBitsPerSample;		// 2: Bits per sample
+};
+
+struct wav_data {
 	char SubChunck[ID_SIZE];	// 4: "data"
 	u32  SubChunckSize;		// 4: file size - 44
 };
@@ -52,10 +55,12 @@ const static char *str_data	= "data";
 #define FILE_NAME_SIZE 128
 int wav_write_header(struct dev_param *param)
 {
-	struct wav wav;
+	struct wav_base wav;
+	struct wav_data data;
 	FILE *fp;
 	int null = 0;
 	int ret = -ENOENT;
+	int blockalign = param->sample / 8 * param->chan;
 
 	//==========================
 	// open the file
@@ -64,33 +69,46 @@ int wav_write_header(struct dev_param *param)
 		goto no_open;
 
 	//==========================
+	// fill data
+	//==========================
+	data.SubChunckSize = blockalign * param->length;
+	name_fill(data.SubChunck, str_data);
+
+	//==========================
 	// fill the wav file header
 	//==========================
 	name_fill(wav.riff,		str_riff);
 	name_fill(wav.ID,		str_wave);
 	name_fill(wav.ckID,		str_fmt);
-	name_fill(wav.SubChunck,	str_data);
 	wav.cksize		= 16;
 	wav.wFormatTag		= 0x0001;
 	wav.nChannels		= param->chan;
 	wav.nSamplesPerSec	= param->rate;
 	wav.wBitsPerSample	= param->sample;
-	wav.nBlockAlign		= param->sample / 8 * param->chan;
+	wav.nBlockAlign		= blockalign;
 	wav.nAvgBytesPerSec	= wav.nBlockAlign * param->rate;
-	wav.SubChunckSize	= wav.nBlockAlign * param->length;
-	wav.rsize		= wav.SubChunckSize + sizeof(struct wav) - 8;
+	wav.rsize		= data.SubChunckSize +
+				  sizeof(struct wav_base) +
+				  sizeof(struct wav_data) - 8;
 
 	//==========================
-	// write header
+	// write wav base
 	//==========================
 	ret = -EINVAL;
-	if (!fwrite(&wav, sizeof(wav), 1, fp))
+	if (!fwrite(&wav, sizeof(struct wav_base), 1, fp))
+		goto err;
+
+	//==========================
+	// write wav data
+	//==========================
+	ret = -EINVAL;
+	if (!fwrite(&data, sizeof(struct wav_data), 1, fp))
 		goto err;
 
 	//==========================
 	// fill null data
 	//==========================
-	for (int i = 0; i < wav.SubChunckSize; i++)
+	for (int i = 0; i < data.SubChunckSize; i++)
 		if (!fwrite(&null, 1, 1, fp))
 			goto err;
 
@@ -119,7 +137,8 @@ int wav_write_data(struct dev_param *param, int chan)
 	// 1st "non target channel" (offset)
 	//==========================
 	offset = chan * param->sample / 8;
-	if (fseek(fp, sizeof(struct wav) + offset, SEEK_SET))
+	if (fseek(fp, sizeof(struct wav_base) +
+		      sizeof(struct wav_data) + offset, SEEK_SET))
 		goto err;
 
 	//==========================
@@ -151,7 +170,8 @@ no_open:
 //=======================================
 int wav_read_header(struct dev_param *param)
 {
-	struct wav wav;
+	struct wav_base wav;
+	struct wav_data data;
 	FILE *fp;
 	int rate;
 	int chan;
@@ -168,7 +188,7 @@ int wav_read_header(struct dev_param *param)
 	// read header part
 	//==========================
 	ret = -EIO;
-	if (!fread(&wav, sizeof(struct wav), 1, fp))
+	if (!fread(&wav, sizeof(struct wav_base), 1, fp))
 		goto err;
 
 	chan	= wav.nChannels;
@@ -190,10 +210,6 @@ int wav_read_header(struct dev_param *param)
 	if (ret)
 		goto err;
 
-	ret = name_check(wav.SubChunck, str_data);
-	if (ret)
-		goto err;
-
 	//==========================
 	// expectation part check
 	//==========================
@@ -210,12 +226,22 @@ int wav_read_header(struct dev_param *param)
 		goto err;
 
 	//==========================
+	// data part check
+	//==========================
+	if (!fread(&data, sizeof(struct wav_data), 1, fp))
+		goto err;
+
+	ret = name_check(data.SubChunck, str_data);
+	if (ret)
+		goto err;
+
+	//==========================
 	// set param->xxx
 	//==========================
 	param->chan	= wav.nChannels;
 	param->rate	= wav.nSamplesPerSec;
 	param->sample	= wav.wBitsPerSample;
-	param->length	= wav.SubChunckSize / wav.nBlockAlign;
+	param->length	= data.SubChunckSize / wav.nBlockAlign;
 
 	// success
 	ret = 0;
@@ -247,7 +273,8 @@ int wav_read_data(struct dev_param *param, int chan)
 	// 1st "non target channel" (offset)
 	//==========================
 	offset = chan * param->sample / 8;
-	if (fseek(fp, sizeof(struct wav) + offset, SEEK_SET))
+	if (fseek(fp, sizeof(struct wav_base) +
+		      sizeof(struct wav_data) + offset, SEEK_SET))
 		goto err;
 
 	//==========================
