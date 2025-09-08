@@ -141,9 +141,9 @@ err:
 //=======================================
 static int buf_alloc(struct dev_param *param)
 {
-	s16 *buf;
+	s32 *buf;
 
-	buf = calloc(param->length, param->word);
+	buf = calloc(32, param->length);
 	if (!buf)
 		return -ENOMEM;
 
@@ -194,8 +194,7 @@ static int __dtmf_wav_write(struct dev_param *param, char *filename)
 		ret = dtmf_fill(param->buf,
 				param->length,
 				param->rate,
-				param->sample,
-				param->word, num);
+				param->sample, num);
 		if (ret < 0)
 			goto err;
 

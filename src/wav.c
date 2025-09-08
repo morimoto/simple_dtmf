@@ -298,8 +298,28 @@ int wav_read_data(struct dev_param *param, int chan)
 	offset = (param->chan - 1) * param->word;
 
 	for (int i = 0; i < param->length; i++) {
+		int minus = 0;
+
 		if (!fread(&param->buf[i], param->word, 1, fp))
 			goto err;
+
+		/*
+		 * FIXME
+		 *
+		 * Because we are using 4byte buffer for 16/24/32bit data,
+		 * we need to expand minus for 16/24bit case.
+		 */
+		switch (param->sample) {
+		case 16:
+			if (param->buf[i] & 0x8000)
+				minus = 1;
+
+			param->buf[i] &= 0xffff;
+			if (minus)
+				param->buf[i] |= 0xffff0000;
+
+			break;
+		}
 
 		if (offset > 0 && fseek(fp, offset, SEEK_CUR))
 			goto err;

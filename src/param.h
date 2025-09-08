@@ -32,18 +32,18 @@ struct dev_param {
 	int rate;
 	int chan;
 	int word;	/* (byte) word size */
-	int sample;	/* (bit)  16 bit for now */
+	int sample;	/* (bit)  16/24/32 */
 	int length;
 
 	u32 flag;
 
-	s16 *buf;
+	s32 *buf;	/* always use s32 */
 	char *nums;
 	char *filename;
 };
 
-char dtmf_analyze(s16 *buf, int length, int rate);
-int dtmf_fill(s16 *buf, int length, int rate, int sample, int word, char num);
+char dtmf_analyze(s32 *buf, int length, int rate);
+int dtmf_fill(s32 *buf, int length, int rate, int sample, char num);
 
 int wav_write_header(struct dev_param *param);
 int wav_write_data(struct dev_param *param, int chan);

@@ -50,7 +50,7 @@ const static struct tone_info tone_info[] = {
 // goertzel
 //
 //=======================================
-static double goertzel(s16 *buf, int length, int rate, int dtmf_fq)
+static double goertzel(s32 *buf, int length, int rate, int dtmf_fq)
 {
 	double omega	= PI2 * dtmf_fq / rate;
 	double sine	= sin(omega);
@@ -78,7 +78,7 @@ static double goertzel(s16 *buf, int length, int rate, int dtmf_fq)
 //
 //=======================================
 #define DTMF_LEVELS_MAX	4
-static void __dtmf_analyze(s16 *buf, int length, int rate, const int *fq, int *ret)
+static void __dtmf_analyze(s32 *buf, int length, int rate, const int *fq, int *ret)
 {
 	double level[DTMF_LEVELS_MAX];
 	int i, idx = 0;
@@ -114,7 +114,7 @@ static void __dtmf_analyze(s16 *buf, int length, int rate, const int *fq, int *r
 	*ret = fq[idx];
 }
 
-char dtmf_analyze(s16 *buf, int length, int rate)
+char dtmf_analyze(s32 *buf, int length, int rate)
 {
 	static const int dtmf_fq_low[DTMF_LEVELS_MAX] = { TONE_123A, TONE_456B, TONE_789C, TONE_x0xD };
 	static const int dtmf_fq_hi[ DTMF_LEVELS_MAX] = { TONE_147x, TONE_2580, TONE_369x, TONE_ABCD };
@@ -141,7 +141,7 @@ err:
 // dtmf_fill
 //
 //=======================================
-int dtmf_fill(s16 *buf, int length, int rate, int sample, int word, char num)
+int dtmf_fill(s32 *buf, int length, int rate, int sample, char num)
 {
 	long volume = (((u32)~0) >> (32 - sample + 1)) / 2;
 	double phase_low	= 0;
@@ -154,7 +154,7 @@ int dtmf_fill(s16 *buf, int length, int rate, int sample, int word, char num)
 
 	if (num == '_') {
 		/* do nothing */
-		memset(buf, 0, length * word);
+		memset(buf, 0, 32 * length);
 		return 0;
 	}
 
