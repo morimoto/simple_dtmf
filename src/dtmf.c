@@ -129,9 +129,8 @@ char dtmf_analyze(s16 *buf, int length, int rate)
 
 	for (int i = 0; i < ARRAY_SIZE(tone_info); i++) {
 		if (tone_info[i].low == low &&
-		    tone_info[i].hi  == hi) {
+		    tone_info[i].hi  == hi)
 			return tone_info[i].num;
-		}
 	}
 err:
 	return unknown;
