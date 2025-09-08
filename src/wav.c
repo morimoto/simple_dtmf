@@ -40,12 +40,25 @@ const static char *str_data	= "data";
 
 //=======================================
 //
-// name_check
 // name_fill
 //
 //=======================================
-#define name_check(pos, ans) strncmp(pos, ans, ID_SIZE);
 #define name_fill(pos, ans)   memcpy(pos, ans, ID_SIZE)
+
+//=======================================
+//
+// name_check
+//
+//=======================================
+int name_check(const char *pos, const char *ans)
+{
+	int ret = strncmp(pos, ans, ID_SIZE);
+
+	if (ret != 0)
+		ret = -EINVAL;
+
+	return ret;
+}
 
 //=======================================
 //
