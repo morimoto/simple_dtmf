@@ -30,10 +30,10 @@ struct wav {
 	u32  SubChunckSize;		// 4: file size - 44
 };
 
-const static char *riff	= "RIFF";
-const static char *wave = "WAVE";
-const static char *fmt	= "fmt ";
-const static char *data	= "data";
+const static char *str_riff	= "RIFF";
+const static char *str_wave	= "WAVE";
+const static char *str_fmt	= "fmt ";
+const static char *str_data	= "data";
 
 //=======================================
 //
@@ -66,10 +66,10 @@ int wav_write_header(struct dev_param *param)
 	//==========================
 	// fill the wav file header
 	//==========================
-	name_fill(wav.riff,		riff);
-	name_fill(wav.ID,		wave);
-	name_fill(wav.ckID,		fmt);
-	name_fill(wav.SubChunck,	data);
+	name_fill(wav.riff,		str_riff);
+	name_fill(wav.ID,		str_wave);
+	name_fill(wav.ckID,		str_fmt);
+	name_fill(wav.SubChunck,	str_data);
 	wav.cksize		= 16;
 	wav.wFormatTag		= 0x0001;
 	wav.nChannels		= param->chan;
@@ -178,19 +178,19 @@ int wav_read_header(struct dev_param *param)
 	//==========================
 	// name part check
 	//==========================
-	ret = name_check(wav.riff, riff);
+	ret = name_check(wav.riff, str_riff);
 	if (ret)
 		goto err;
 
-	ret = name_check(wav.ID, wave);
+	ret = name_check(wav.ID, str_wave);
 	if (ret)
 		goto err;
 
-	ret = name_check(wav.ckID, fmt);
+	ret = name_check(wav.ckID, str_fmt);
 	if (ret)
 		goto err;
 
-	ret = name_check(wav.SubChunck, data);
+	ret = name_check(wav.SubChunck, str_data);
 	if (ret)
 		goto err;
 
