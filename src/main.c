@@ -194,6 +194,7 @@ static int __dtmf_wav_write(struct dev_param *param, char *filename)
 		ret = dtmf_fill(param->buf,
 				param->length,
 				param->rate,
+				param->sample,
 				param->word, num);
 		if (ret < 0)
 			goto err;

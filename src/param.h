@@ -43,7 +43,7 @@ struct dev_param {
 };
 
 char dtmf_analyze(s16 *buf, int length, int rate);
-int dtmf_fill(s16 *buf, int length, int rate, int sample, char num);
+int dtmf_fill(s16 *buf, int length, int rate, int sample, int word, char num);
 
 int wav_write_header(struct dev_param *param);
 int wav_write_data(struct dev_param *param, int chan);

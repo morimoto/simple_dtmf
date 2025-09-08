@@ -141,16 +141,16 @@ err:
 // dtmf_fill
 //
 //=======================================
-int dtmf_fill(s16 *buf, int length, int rate, int word, char num)
+int dtmf_fill(s16 *buf, int length, int rate, int sample, int word, char num)
 {
-	long volume		= 40000000 / rate;
+	long volume = (((u32)~0) >> (32 - sample + 1)) / 2;
 	double phase_low	= 0;
 	double phase_hi		= 0;
 	double add_low;
 	double add_hi;
 	int tone_low = 0;
 	int tone_hi  = 0;
-	int i, v = 0;
+	int i;
 
 	if (num == '_') {
 		/* do nothing */
@@ -173,10 +173,7 @@ found:
 	add_hi		= PI2 * tone_hi  / rate;
 	for (i = 0; i < length; i++) {
 
-		if (add_low != 0) v += sin(phase_low) * volume;
-		if (add_hi  != 0) v += sin(phase_hi)  * volume;
-
-		buf[i] = v;
+		buf[i] = (sin(phase_low) + sin(phase_hi)) * volume;
 
 		phase_low += add_low;
 		phase_hi  += add_hi;
